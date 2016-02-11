@@ -1,11 +1,15 @@
 #pragma once
 
 #include "RectifierParser.h"
+#include <vector>
+#include <string>
 
 #include <msclr/marshal.h>
 using namespace msclr::interop;
 
+#define MAX_ITEMS 100
 RectifierParameters rectifierParameters;
+std::vector<std::string> outVector;
 
 namespace Rectifier_Tester_GUI {
 
@@ -74,6 +78,9 @@ namespace Rectifier_Tester_GUI {
 	private: System::Windows::Forms::GroupBox^  groupBox4;
 	private: System::Windows::Forms::Button^  comStart;
 
+	private: System::Windows::Forms::Timer^  timer1;
+	private: System::Windows::Forms::ListBox^  listBox;
+
 	private: System::ComponentModel::IContainer^  components;
 	protected:
 
@@ -90,6 +97,7 @@ namespace Rectifier_Tester_GUI {
 		/// </summary>
 		void InitializeComponent(void)
 		{
+			this->components = (gcnew System::ComponentModel::Container());
 			this->voltageValue = (gcnew System::Windows::Forms::NumericUpDown());
 			this->voltageInc1 = (gcnew System::Windows::Forms::Button());
 			this->voltageInc10 = (gcnew System::Windows::Forms::Button());
@@ -114,6 +122,8 @@ namespace Rectifier_Tester_GUI {
 			this->comPortName = (gcnew System::Windows::Forms::TextBox());
 			this->groupBox4 = (gcnew System::Windows::Forms::GroupBox());
 			this->comStart = (gcnew System::Windows::Forms::Button());
+			this->timer1 = (gcnew System::Windows::Forms::Timer(this->components));
+			this->listBox = (gcnew System::Windows::Forms::ListBox());
 			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->voltageValue))->BeginInit();
 			this->groupBox2->SuspendLayout();
 			this->groupBox1->SuspendLayout();
@@ -381,11 +391,25 @@ namespace Rectifier_Tester_GUI {
 			this->comStart->UseVisualStyleBackColor = true;
 			this->comStart->Click += gcnew System::EventHandler(this, &MainForm::comStart_Click);
 			// 
+			// timer1
+			// 
+			this->timer1->Enabled = true;
+			this->timer1->Tick += gcnew System::EventHandler(this, &MainForm::timer1_Tick);
+			// 
+			// listBox
+			// 
+			this->listBox->FormattingEnabled = true;
+			this->listBox->Location = System::Drawing::Point(12, 250);
+			this->listBox->Name = L"listBox";
+			this->listBox->Size = System::Drawing::Size(430, 173);
+			this->listBox->TabIndex = 19;
+			// 
 			// MainForm
 			// 
 			this->AutoScaleDimensions = System::Drawing::SizeF(6, 13);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(454, 275);
+			this->ClientSize = System::Drawing::Size(454, 435);
+			this->Controls->Add(this->listBox);
 			this->Controls->Add(this->moduleAlarm);
 			this->Controls->Add(this->groupBox1);
 			this->Controls->Add(this->groupBox2);
@@ -483,13 +507,24 @@ namespace Rectifier_Tester_GUI {
 		marshal_context ^ context = gcnew marshal_context();
 		const char* portName = context->marshal_as<const char*>(comPortName->Text);
 		try {
-			parser = new  RectifierParser(portName, rectifierParameters);
+			parser = new RectifierParser(portName, rectifierParameters, &outVector);
+
 			comStart->Enabled = false;
 		}
 		catch (boost::system::system_error error) {
 			delete parser;
 			parser = nullptr;
 		}
+	}
+
+	private: System::Void timer1_Tick(System::Object^  sender, System::EventArgs^  e) {
+		int i = outVector.size();
+		for (int i = 0; i < outVector.size(); i++) {
+			listBox->Items->Add(marshal_as<String^>(outVector[i].c_str()));
+			if (listBox->Items->Count > MAX_ITEMS)
+				listBox->Items->RemoveAt(0);
+		}
+		outVector.clear();
 	}
 
 	};

@@ -5,6 +5,10 @@
 #include "ReadWriteUtility.h"
 #include "RectifierParserDef.h"
 
+#include <string>
+#include <vector>
+#include <sstream>
+
 // Rectifier settings
 #define RECTIFIER_ADDRESS			1
 #define RECTIFIER_BAUD_RATE			4800
@@ -45,7 +49,7 @@ public:
 class RectifierParser : CallbackInterface
 {
 public:
-	RectifierParser(const std::string comPortName, RectifierParameters& rectifierParameters_);
+	RectifierParser(const std::string comPortName, RectifierParameters& rectifierParameters_, std::vector<std::string>* outVector);
 	~RectifierParser();
 
 	void onReceive(const char*, uint16_t);
@@ -61,7 +65,9 @@ private:
 	void buildSimpleIssuedMessage(char cid, uint8_t address, char* info, uint8_t infoLength);
 	SerialPort serial_;
 	RectifierFrame frame_;
+
 	RectifierParameters& rectifierParameters_;
+	std::vector<std::string>* outVector_;
 
 	RectifierSetParameters rectifierSetParameters_;
 

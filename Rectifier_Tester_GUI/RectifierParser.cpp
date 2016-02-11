@@ -115,6 +115,11 @@ void RectifierParser::sendGetVoltageAndCurrentAnswer() {
 	getTwoByteBcdFromDouble(infoPart, pos, rectifierSetParameters_.voltage, 10);
 	getTwoByteBcdFromDouble(infoPart, pos, rectifierSetParameters_.current, 10);
 
+	std::ostringstream strs;
+	strs << "GET: VOLTAGE=" << rectifierSetParameters_.voltage << " CURRENT=" << rectifierSetParameters_.current;
+	std::string str = strs.str();
+	outVector_->push_back(str);
+
 	buildSimpleIssuedMessage(RectifierOrder::UPLOAD_GET_VOLTAGE_AND_CURRENT, address_, infoPart, sizeof(infoPart));
 }
 
@@ -140,6 +145,11 @@ void RectifierParser::setOutputParametersHandler() {
 	rectifierSetParameters_.voltage = twoByte / 10.0;
 	BUFFER_READ_BCD(twoByte, pData, infoDataSize_);
 	rectifierSetParameters_.current = twoByte / 10.0;
+
+	std::ostringstream strs;
+	strs << "SET: VOLTAGE=" << rectifierSetParameters_.voltage << " CURRENT=" << rectifierSetParameters_.current;
+	std::string str = strs.str();
+	outVector_->push_back(str);
 }
 
 void RectifierParser::sendAnswer() {
@@ -162,10 +172,11 @@ void RectifierParser::sendAnswer() {
 	}
 }
 
-RectifierParser::RectifierParser(const std::string comPortName, RectifierParameters& rectifierParameters)
+RectifierParser::RectifierParser(const std::string comPortName, RectifierParameters& rectifierParameters, std::vector<std::string>* outVector)
 	: serial_(comPortName),
 	rectifierParameters_(rectifierParameters),
-	address_(RECTIFIER_ADDRESS)
+	address_(RECTIFIER_ADDRESS),
+	outVector_(outVector)
 {
 	try {
 		serial_.begin(RECTIFIER_BAUD_RATE);
